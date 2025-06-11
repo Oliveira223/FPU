@@ -1,0 +1,12 @@
+module fpu(
+    input logic a;
+
+
+);
+
+
+
+
+
+
+endmodule
