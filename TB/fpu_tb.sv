@@ -19,9 +19,9 @@ module fpu_tb;
         .status_out(status_out)
     );
 
-    always #5 clock = ~clock;  //Clock de 100kHz 
+    always #5 clock = ~clock;  //Clock 100kHz
 
-    // Função auxiliar para montar o valor binário com padrão customizado
+    // Função para montar número float no seu formato: 1 bit sinal, 7 bits expoente, 24 bits mantissa
     function [31:0] monta_fp;
         input bit       sinal;
         input [6:0]     exp;
@@ -31,49 +31,49 @@ module fpu_tb;
         end
     endfunction
 
+    task automatic automatic_input(
+        input [31:0] A,
+        input [31:0] B,
+        input string test_name
+    );
+        begin
+            $display("\n================== %s ==================", test_name);
+            #10;
+            op_A_in <= A;
+            op_B_in <= B;
+            #10 start = 1; #10 start = 0;
+            #1000;
+
+            $display("A       = %h", A);
+            $display("B       = %h", B);
+            $display("Saida   = %h", data_out);
+            $display("Status  = %b", status_out);
+            $display("=========================================\n");
+        end
+    endtask
+
     initial begin
         clock = 0;
         start = 0;
-    #10 reset = 1;
+        reset = 0;
+        #10 reset = 1;
 
-    // === Teste 1: Dois positivos pequenos (2.0 + 1.5) ===
-        #10 op_A_in = 32'h40000000;  // 2.0
-            op_B_in = 32'h3FC00000;  // 1.5
-        $display("=== Teste 1: Dois positivos pequenos (2.0 + 1.5) ===");
-        #10 start = 1; #10 start = 0;
-        #200;
-        $display("data_out   = %h", data_out);
-        $display("status_out = %b\n", status_out);
+        automatic_input(monta_fp(0, 7'd0, 24'd0), monta_fp(0, 7'd0, 24'd0), "TEST 1: Zero + Zero");
 
-        // === Teste 2: Positivo + Negativo (2.0 + (-1.5)) ===
-        #10 op_A_in = 32'h40000000;  // 2.0
-            op_B_in = 32'hBFC00000;  // -1.5 (sinal 1)
-        $display("=== Teste 2: Positivo + Negativo (2.0 + (-1.5)) ===");
-        #10 start = 1; #10 start = 0;
-        #200;
-        $display("data_out   = %h", data_out);
-        $display("status_out = %b\n", status_out);
+        automatic_input(monta_fp(0, 7'd64, 24'h800000), monta_fp(0, 7'd63, 24'hC00000), "TEST 2: 2.0 + 1.5");
 
-        // === Teste 3: Subtração com cancelamento (1.0 - 1.0) ===
-        #10 op_A_in = 32'h3F800000;  // 1.0
-            op_B_in = 32'hBF800000;  // -1.0
-        $display("=== Teste 3: Subtração com cancelamento (1.0 - 1.0) ===");
-        #10 start = 1; #10 start = 0;
-        #200;
-        $display("data_out   = %h", data_out);
-        $display("status_out = %b\n", status_out);
+        automatic_input(monta_fp(0, 7'd64, 24'h800000), monta_fp(1, 7'd63, 24'hC00000), "TEST 3: 2.0 + (-1.5)");
 
-        // === Teste 4: Arredondamento (1.1 + 1.1) ===
-        // 1.1 decimal ~ 0x3F8CCCCD em float IEEE 754 (aprox)
-        #10 op_A_in = 32'h3F8CCCCD;  // ~1.1
-            op_B_in = 32'h3F8CCCCD;  // ~1.1
-        $display("=== Teste 4: Arredondamento (1.1 + 1.1) ===");
-        #10 start = 1; #10 start = 0;
-        #200;
-        $display("data_out   = %h", data_out);
-        $display("status_out = %b\n", status_out);
+        automatic_input(monta_fp(0, 7'd63, 24'h400000), monta_fp(1, 7'd63, 24'h400000), "TEST 4: 1.0 - 1.0");
 
+        automatic_input(32'h3F8CCCCD, 32'h3F8CCCCD, "TEST 5: 1.1 + 1.1");
+
+        automatic_input(monta_fp(0, 7'd127, 24'h7FFFFF), monta_fp(0, 7'd127, 24'h7FFFFF), "TEST 6: Overflow");
+
+        automatic_input(monta_fp(0, 7'd1, 24'h000001), monta_fp(0, 7'd1, 24'h000001), "TEST 7: Underflow");
+
+        #100;
         $stop;
-   end
+    end
 
 endmodule
