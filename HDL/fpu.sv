@@ -73,16 +73,20 @@ state_t state;
 
     always_ff @(posedge clock or negedge reset) begin
         if(!reset) begin
-            state       <= IDLE;
-            exp_result  <= 0; 
-            diff_reg    <= 0; 
-            exp_a_reg   <= 0;
-            exp_b_reg   <= 0;
-            mant_a_reg  <= 0;
-            mant_b_reg  <= 0;
+            state              <= IDLE;
+            exp_result         <= 0; 
+            mantissa_result    <= 0;
+            sign_result        <= 0;
+            diff_reg           <= 0; 
+            exp_a_reg          <= 0;
+            exp_b_reg          <= 0;
+            mant_a_reg         <= 0;
+            mant_b_reg         <= 0;
             mantissa_a_shifted <= 0;
             mantissa_b_shifted <= 0;
             exp_aligned        <= 0;
+            status_out         <= 0;
+            data_out           <= 0;
         end else begin
            
 
@@ -163,14 +167,14 @@ state_t state;
                     sign_result     <= sign_a_reg;
                 end else begin
 
-                    //Subtrações
-                    if(mantissa_a_shifted >= mantissa_b_shifted) begin
-                        mantissa_result <= mantissa_a_shifted - mantissa_b_shifted;
-                        sign_result     <= sign_a_reg;
-                    end else begin
-                    if(mantissa_a_shifted <= mantissa_b_shifted) begin
-                        mantissa_result <= mantissa_b_shifted - mantissa_a_shifted;
-                        sign_result     <= sign_b_reg;
+                //Subtrações
+                if(mantissa_a_shifted >= mantissa_b_shifted) begin
+                    mantissa_result <= mantissa_a_shifted - mantissa_b_shifted;
+                    sign_result     <= sign_a_reg;
+                end else begin
+                if(mantissa_a_shifted <= mantissa_b_shifted) begin
+                    mantissa_result <= mantissa_b_shifted - mantissa_a_shifted;
+                    sign_result     <= sign_b_reg;
                     end
                     end
                 end
@@ -187,47 +191,40 @@ state_t state;
                 end
 
                 NORMALIZE: begin // Normalizar mantissa (remover zeros a esquerda) e ajustar expoente conforme necessário
-                //Verifica se excedeu limite da mantissa
+                
+                //OVERFLOW
+                if ( exp_result>= 7'd127 ) 
+                begin
+                    $display("-> OVERFLOW ");
+                    status_out <= status_out + OVERFLOW;
+                    mantissa_result <= 0;
+                    exp_result <= 0;
+                    state <= PACK;
+                
 
-               // if(mantissa_result[25]) begin
-                if(mantissa_result[25]) begin
+                end else if(mantissa_result[25]) begin
                     guard_bit <= mantissa_result[0];           // salva o menos significativo
                     round_bit <= 1'b0;                         // sem bits extras aqui (shift 1 bit só)
                     sticky_bit <= 1'b0;                        
-
                     mantissa_result <= mantissa_result >> 1; //Desloca mantissa para direita, descartando o bit excedente
-                   
                     exp_result       <= exp_result + 1;       //Aumenta o expoente
+                    state <= NORMALIZE;
                 
-
-                    //$display("exp_result atual = %d", exp_result);
-                    //Verifica Overflow
-                    if ( exp_result>= 7'd127 ) begin
-                        $display("-> OVERFLOW ");
-                        status_out <= status_out | OVERFLOW;
-                        mantissa_result <= 0;
-                        exp_result <= 0;
-                        state <= ROUND;
-                    end 
-                    else begin
-                        state <= NORMALIZE;
-                    end
-                end 
-
-
                 //Verifica se Mantissa_result[24] é 1 e arruma expoente
-                else if (mantissa_result[24] == 0) begin
+                end else if (mantissa_result[24] == 0) begin
+                    //mantissa ainda não normalizada
                     if (exp_result > 0) begin
                         mantissa_result <= mantissa_result << 1;
                         exp_result <= exp_result - 1;
                         state <= NORMALIZE;
+
                     end else begin
                         // expoente chegou a zero, não pode decrementar mais: underflow
                         $display("-> UNDERFLOW");
                         status_out <= status_out | UNDERFLOW;
                         mantissa_result <= 0;
                         exp_result <= 0;
-                        state <= ROUND;
+                        state <= PACK;
                     end
                 end
                  
@@ -248,8 +245,6 @@ state_t state;
     
                 // Arredondar e detectar flags
                 ROUND: begin
-                
-
                 //se alguém "se passou", arredonda pra cima
                 if (guard_bit && (round_bit || sticky_bit || mantissa_result[0])) begin
                       rounded_mantissa = mantissa_result + 1;
