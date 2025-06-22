@@ -73,7 +73,11 @@ Essa FPU sinaliza o resultado da operão por meio de um vetor `status_out` do ti
 | 0100 | `OVERFLOW`  | O expoente final excedeu o valor máximo representável |
 | 1000 | `UNDERFLOW` | O expoente final foi menor que o mínimo representável |
 
+### Faixa de Representação
 
+
+
+---
 
 ### Como Executar o Programa
 1. Inicie a ferramenta Questa.
