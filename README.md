@@ -74,7 +74,20 @@ Essa FPU sinaliza o resultado da operão por meio de um vetor `status_out` do ti
 | 1000 | `UNDERFLOW` | O expoente final foi menor que o mínimo representável |
 
 ### Faixa de Representação
+A unidade de ponto flutuante (FPU) desenvolvida neste projeto utiliza um formato personalizado composto por:
+- 1 bit de sinal
+- 7 bits de expoente com bias 63
+- 24 bits de mantissa, sem bit implícito
+Dessa forma, os números representáveis seguem a seguinte forma:
 
+$$\text{Valor} = (-1)^{sinal} \times \text{mantissa} \times 2^{\text{expoente} -63}$$
+
+| Tipo de valor                   | Fórmula                           | Valor aproximado            |
+| ------------------------------- | --------------------------------- | --------------------------- |
+| **Máximo positivo**             | $(1 - 2^{-24}) \cdot 2^{64}$      | $+1.8446743 \times 10^{19}$ |
+| **Mínimo positivo normalizado** | $2^{-24} \cdot 2^{-62} = 2^{-86}$ | $+1.27 \times 10^{-26}$     |
+| **Máximo negativo**             | $-(1 - 2^{-24}) \cdot 2^{64}$     | $-1.8446743 \times 10^{19}$ |
+| **Mínimo negativo normalizado** | $-2^{-86}$                        | $-1.27 \times 10^{-26}$     |
 
 
 ---
