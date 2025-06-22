@@ -89,6 +89,8 @@ $$\text{Valor} = (-1)^{sinal} \times \text{mantissa} \times 2^{\text{expoente} -
 | **Máximo negativo**             | $-(1 - 2^{-24}) \cdot 2^{64}$     | $-1.8446743 \times 10^{19}$ |
 | **Mínimo negativo normalizado** | $-2^{-86}$                        | $-1.27 \times 10^{-26}$     |
 
+![image](https://github.com/user-attachments/assets/89ae48e0-6d27-403f-8255-fcd9892e0ffd)
+
 
 ---
 
