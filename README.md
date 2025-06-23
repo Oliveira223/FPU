@@ -92,6 +92,30 @@ $$\text{Valor} = (-1)^{sinal} \times \text{mantissa} \times 2^{\text{expoente} -
 ![image](https://github.com/user-attachments/assets/89ae48e0-6d27-403f-8255-fcd9892e0ffd)
 
 
+### Simulações de Operações
+Para testar o código, foi desenvolvido um _testbench_ com 10 simulações de operações com testes distintos. Cada teste aplica dois operandos em ponto flutuante e verifica se o resultado da operação e os flags de _status_ estão de acordo com o esperado. 
+#### Testes:
+- Zero + Zero
+- Soma Comum
+- Soma com sinais opostos
+- Subtração entre valores iguais
+- Soma de dois números iguais com nantissa fracionária
+- Teste de Overflow
+- Tesde de Underflow
+- Idenntidade da adição
+- Simetria
+- Subtração com expoentes diferentes
+
+Todos os testes foram executados com temporização suficiente para observar o resultado final e foram acompanhados por mensagens no console, utilizando o comando `$display`, exibindo os campos internos da FPU: mantissas, expoentes, sinais, resultado final e flags de status, como mostrado abaixo.
+
+![image](https://github.com/user-attachments/assets/aeaf58b7-e4c6-4b68-ac62-774ac769dc9b)
+
+$\rightarrow$ Sinais de Onda:
+![image](https://github.com/user-attachments/assets/3689def2-62f7-483c-a7ef-73c8e5ba36a1)
+
+
+
+
 ---
 
 ### Como Executar o Programa
